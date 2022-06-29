@@ -2,8 +2,8 @@ package models
 
 type Resume struct {
 	BaseModel BaseModel `gorm:"embedded"`
-	AuthorId  uint
-	Author    User   `json:"author"`
-	Name      string `json:"name"`
-	Content   string `json:"content" gorm:"size:1000"`
+	AuthorId  uint      `gorm:"uniqueIndex:unique_idx_resume"`
+	Author    User      `json:"author"`
+	Name      string    `json:"name" gorm:"uniqueIndex:unique_idx_resume"`
+	Content   string    `json:"content" gorm:"size:1000"`
 }
