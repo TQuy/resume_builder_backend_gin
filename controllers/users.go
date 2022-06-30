@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"resume_builder/go-gin-gorm/models"
 
@@ -24,4 +25,8 @@ func CreateUser(c *gin.Context) {
 		Password: input.Password,
 	}
 	models.DB.Create(&user)
+
+	message := fmt.Sprintf("User %v created successfully", user.Username)
+
+	c.JSON(http.StatusOK, gin.H{"data": message})
 }
