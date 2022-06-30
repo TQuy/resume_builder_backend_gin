@@ -58,7 +58,7 @@ func AuthUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Incorrect password!"})
 	}
 	// Generate token for request authentication
-	jwtToken, err := generateJWT(user.Username)
+	jwtToken, err := generateJWT(user.ID, user.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create token!"})
 	}
@@ -67,10 +67,11 @@ func AuthUser(c *gin.Context) {
 }
 
 // generateJWT generate new JWT token
-func generateJWT(username string) (string, error) {
+func generateJWT(id uint, username string) (string, error) {
 	// Create a new token object, specifying signing method and the claims
 	// you would like it to contain.
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":       id,
 		"username": username,
 		"nbf":      time.Now().Unix(),
 	})
