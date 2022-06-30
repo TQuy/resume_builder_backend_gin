@@ -28,5 +28,5 @@ func CreateUser(c *gin.Context) {
 
 	message := fmt.Sprintf("User %v created successfully", user.Username)
 
-	c.JSON(http.StatusOK, gin.H{"data": message})
+	c.JSON(http.StatusCreated, gin.H{"data": message})
 }
