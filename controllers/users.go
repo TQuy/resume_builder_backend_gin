@@ -6,6 +6,7 @@ import (
 	"resume_builder/go-gin-gorm/models"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type CreateUserInput struct {
@@ -19,10 +20,13 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
 	user := models.User{
 		Username: input.Username,
-		Password: input.Password,
+		Password: string(hashedPassword),
 	}
 	models.DB.Create(&user)
 
