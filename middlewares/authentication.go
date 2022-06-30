@@ -12,7 +12,7 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-// LoginRequired validate jwt token before passing it to handler
+// LoginRequired validate and parse jwt token before passing it to handler
 func LoginRequired() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
@@ -20,16 +20,12 @@ func LoginRequired() gin.HandlerFunc {
 		if len(authorization) == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing token!"})
 		}
-
-		// bearer := strings.Fields(authorization[0])
-		// if len(bearer) < 2 {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Incorrect token format!"})
-		// }
+		// validate and parse jwt token
 		userID, err := getAccountID(authorization)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		}
-
+		// Save userID to request session
 		c.Keys = make(map[string]interface{})
 		c.Keys["id"] = userID
 		c.Next()
