@@ -2,6 +2,7 @@ package main
 
 import (
 	"resume_builder/go-gin-gorm/controllers"
+	"resume_builder/go-gin-gorm/middlewares"
 	"resume_builder/go-gin-gorm/models"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,9 @@ func main() {
 	models.ConnectDatabase()
 
 	r.POST("/auth/register", controllers.CreateUser)
+	r.POST("/auth/login", controllers.AuthUser)
 
-	r.Run("127.0.0.1:8080")
+	r.GET("/resumes/", middlewares.LoginRequired(), controllers.ListResumes)
+
+	r.Run("127.0.0.1:8000")
 }
