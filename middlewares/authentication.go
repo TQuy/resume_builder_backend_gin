@@ -23,19 +23,16 @@ func LoginRequired() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		// validate and parse jwt token
+		// get user ID from jwt token
 		userID, err := getAccountID(authorization)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			fmt.Println("-----------stop here")
 			c.Abort()
 			return
 		}
 		// Save userID to request session
 		c.Keys = make(map[string]interface{})
-		fmt.Printf("------------------------------userID: %v\n", userID)
 		c.Keys["id"] = userID
-		// c.Next()
 	}
 }
 
@@ -64,7 +61,7 @@ func getAccountID(authorization []string) (uint, error) {
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return 0, errors.New("Unexpected error!")
+		return 0, errors.New("Failed to parse token!")
 	}
 	// This shit need type assertion
 	// its type is float64, but convert it to string first before convert to uint64 to make sure
@@ -83,7 +80,7 @@ func getAccountID(authorization []string) (uint, error) {
 	}
 
 	if !userExists {
-		return 0, errors.New("User not found!")
+		return 0, errors.New("Authentication Failed!")
 	}
 
 	return uint(userID), nil
