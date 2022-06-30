@@ -15,7 +15,8 @@ func main() {
 	r.POST("/auth/register", controllers.CreateUser)
 	r.POST("/auth/login", controllers.AuthUser)
 
-	r.GET("/resumes/", middlewares.LoginRequired(), controllers.ListResumes)
+	r.GET("/resumes", middlewares.LoginRequired(), controllers.ListResumes)
+	r.POST("/resumes", middlewares.LoginRequired(), controllers.CreateResume)
 
 	r.Run("127.0.0.1:8000")
 }

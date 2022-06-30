@@ -28,6 +28,7 @@ func CreateUser(c *gin.Context) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 	// Insert new user into database
 	user := models.User{
@@ -56,11 +57,13 @@ func AuthUser(c *gin.Context) {
 	// Compare password in database with password from request
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Incorrect password!"})
+		return
 	}
 	// Generate token for request authentication
 	jwtToken, err := generateJWT(user.ID, user.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create token!"})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": jwtToken})

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"resume_builder/go-gin-gorm/constants"
+	"resume_builder/go-gin-gorm/models"
 	"strconv"
 	"strings"
 
@@ -19,16 +20,22 @@ func LoginRequired() gin.HandlerFunc {
 		var authorization []string = c.Request.Header["Authorization"]
 		if len(authorization) == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing token!"})
+			c.Abort()
+			return
 		}
 		// validate and parse jwt token
 		userID, err := getAccountID(authorization)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			fmt.Println("-----------stop here")
+			c.Abort()
+			return
 		}
 		// Save userID to request session
 		c.Keys = make(map[string]interface{})
+		fmt.Printf("------------------------------userID: %v\n", userID)
 		c.Keys["id"] = userID
-		c.Next()
+		// c.Next()
 	}
 }
 
@@ -56,7 +63,6 @@ func getAccountID(authorization []string) (uint, error) {
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
-
 	if !ok {
 		return 0, errors.New("Unexpected error!")
 	}
@@ -66,5 +72,19 @@ func getAccountID(authorization []string) (uint, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	var userExists bool
+	if err = models.DB.Model(&models.User{}).
+		Select("count(*) > 0").
+		Where("id = ?", userID).
+		Find(&userExists).
+		Error; err != nil {
+		return 0, err
+	}
+
+	if !userExists {
+		return 0, errors.New("User not found!")
+	}
+
 	return uint(userID), nil
 }
