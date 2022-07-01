@@ -25,7 +25,7 @@ func LoginRequired() gin.HandlerFunc {
 		}
 		// get user ID from jwt token
 		userID, err := getAccountID(authorization)
-		if err != nil {
+		if err != nil || userID == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			c.Abort()
 			return
@@ -63,13 +63,12 @@ func getAccountID(authorization []string) (uint, error) {
 	if !ok {
 		return 0, errors.New("Failed to parse token!")
 	}
-	// This shit need type assertion
-	// its type is float64, but convert it to string first before convert to uint64 to make sure
+	// claims["id"] type is float64, but convert it to string first before convert to uint64 to make sure
 	userID, err := strconv.ParseUint(fmt.Sprint(claims["id"]), 10, 0)
 	if err != nil {
 		return 0, err
 	}
-
+	// Check if there is matched account in database
 	var userExists bool
 	if err = models.DB.Model(&models.User{}).
 		Select("count(*) > 0").
@@ -79,7 +78,7 @@ func getAccountID(authorization []string) (uint, error) {
 		return 0, err
 	}
 
-	if !userExists {
+	if userExists == false {
 		return 0, errors.New("Authentication Failed!")
 	}
 

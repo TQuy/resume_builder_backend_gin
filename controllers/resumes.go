@@ -15,7 +15,7 @@ type CreateResumeInput struct {
 // ListResumes list all the current user's resumes
 func ListResumes(c *gin.Context) {
 	var resumes []models.Resume
-	models.DB.Where("author_id = ?", c.Keys["id"]).Find(&resumes)
+	models.DB.Where("author_id = ?", c.Keys["id"]).Select("id", "name", "content").Find(&resumes)
 	c.JSON(http.StatusOK, gin.H{"data": resumes})
 }
 
@@ -47,4 +47,16 @@ func CreateResume(c *gin.Context) {
 	}
 	models.DB.Create(&resume)
 	c.JSON(http.StatusOK, gin.H{"data": resume})
+}
+
+func DelteResume(c *gin.Context) {
+	var resume models.Resume
+	if err := models.DB.Model(&models.Resume{}).Where("id = ?", c.Param("id")).First(&resume).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return
+	}
+
+	models.DB.Delete(&resume)
+
+	c.JSON(http.StatusOK, gin.H{"data": true})
 }
