@@ -1,5 +1,5 @@
 # Resume Builder
-**Note**: I haven't change the frontend to match with this so you can use `Postman` `curl` to test the APIs
+**Note**: I haven't change the frontend to match with this so you can use `Postman` or `curl` to test the APIs
 ## Content
 - [Start the project](#start-the-project)
 
