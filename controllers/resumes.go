@@ -19,8 +19,19 @@ func ListResumes(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": resumes})
 }
 
+// FindResume return specific resume based on resume's ID
+func FindResume(c *gin.Context) {
+	var resume models.Resume
+
+	if err := models.DB.First(&resume, c.Param("id")).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Resume not found!"})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": resume})
+}
+
 // CreateResume insert new record into resumes table
-func CreateResume(c *gin.Context) {
+func CreateOrUpdateResume(c *gin.Context) {
 	userID, _ := c.Keys["id"].(uint)
 
 	var input CreateResumeInput
@@ -29,18 +40,19 @@ func CreateResume(c *gin.Context) {
 		return
 	}
 
-	var resumeExists bool
-	if err := models.DB.Model(&models.Resume{}).Select("count(*)").Where("name = ? and author_id = ?", input.Name, userID).Find(&resumeExists).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var resume models.Resume
+	result := models.DB.Where("name = ? and author_id = ?", input.Name, userID).Limit(1).Find(&resume)
+	if result.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": result.Error.Error()})
 		return
 	}
-
-	if resumeExists {
-		c.JSON(http.StatusConflict, gin.H{"error": "Resume existed!"})
+	// If resume found, update it
+	if result.RowsAffected == 1 {
+		UpdateResume(c, input, resume)
 		return
 	}
-
-	resume := models.Resume{
+	// else create new
+	resume = models.Resume{
 		Name:     input.Name,
 		Content:  input.Content,
 		AuthorId: uint(userID),
@@ -49,7 +61,15 @@ func CreateResume(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": resume})
 }
 
-func DelteResume(c *gin.Context) {
+// UpdateResume handle resume update
+func UpdateResume(c *gin.Context, input CreateResumeInput, resume models.Resume) {
+	resume.Content = input.Content
+	models.DB.Save(&resume)
+	c.JSON(http.StatusOK, gin.H{"data": resume})
+}
+
+// Delete specific resume based on resume's ID
+func DeleteResume(c *gin.Context) {
 	var resume models.Resume
 	if err := models.DB.Model(&models.Resume{}).Where("id = ?", c.Param("id")).First(&resume).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
